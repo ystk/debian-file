@@ -1,0 +1,13 @@
+Index: git/src/readcdf.c
+===================================================================
+--- git.orig/src/readcdf.c	2012-03-04 16:53:50.248557916 +0100
++++ git/src/readcdf.c	2012-03-04 16:53:53.156345659 +0100
+@@ -285,7 +285,7 @@
+ 		    d = &dir.dir_tab[j];
+ 		    for (k = 0; k < sizeof(name); k++)
+ 			name[k] = (char)cdf_tole2(d->d_name[k]);
+-		    if (strstr(name, "WordDocument") == 0) {
++		    if (strstr(name, "WordDocument") != 0) {
+ 			str = "msword";
+ 			break;
+ 		    }

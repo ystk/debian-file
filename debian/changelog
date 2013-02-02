@@ -1,3 +1,17 @@
+file (5.04-5+squeeze2) squeeze-security; urgency=high
+
+  * Fix overeager detection of CDF file as Word documents
+
+ -- Florian Weimer <fw@deneb.enyo.de>  Sun, 04 Mar 2012 16:55:53 +0100
+
+file (5.04-5+squeeze1) squeeze-security; urgency=high
+
+  * Switch to the CDF parser from file 5.11.  Fixes crashes detected by
+    CERT/CC BFF fuzzer.
+  * Keep old prefix "CDF V2" in file types.
+
+ -- Florian Weimer <fw@deneb.enyo.de>  Wed, 29 Feb 2012 20:05:56 +0100
+
 file (5.04-5) unstable; urgency=low
 
   [ Daniel Baumann ]

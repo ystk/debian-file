@@ -80,3 +80,6 @@
 907-file-python.patch
 908-file-coredump.patch
 999-conglomeration.patch
+cdf-cert-bff-crashes
+cdf-restore-prefix
+cdf-word-detection

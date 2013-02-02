@@ -1,0 +1,22 @@
+Index: git/src/readcdf.c
+===================================================================
+--- git.orig/src/readcdf.c	2012-02-29 20:32:37.313967770 +0100
++++ git/src/readcdf.c	2012-02-29 20:32:51.308968638 +0100
+@@ -173,7 +173,7 @@
+                 return -1;
+ 
+         if (NOTMIME(ms)) {
+-                if (file_printf(ms, "Composite Document File V2 Document")
++                if (file_printf(ms, "CDF V2 Document")
+ 		    == -1)
+                         return -1;
+ 
+@@ -306,7 +306,7 @@
+ out0:
+         if (i != 1) {
+ 		if (i == -1)
+-		    if (file_printf(ms, "Composite Document File V2 Document")
++		    if (file_printf(ms, "CDF V2 Document")
+ 			== -1)
+ 			    return -1;
+                 if (*expn)
