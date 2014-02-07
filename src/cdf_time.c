@@ -27,7 +27,7 @@
 #include "file.h"
 
 #ifndef lint
-FILE_RCSID("@(#)$File: cdf_time.c,v 1.8 2009/06/20 20:47:30 christos Exp $")
+FILE_RCSID("@(#)$File: cdf_time.c,v 1.11 2011/12/13 13:48:41 christos Exp $")
 #endif
 
 #include <time.h>
@@ -44,12 +44,6 @@ FILE_RCSID("@(#)$File: cdf_time.c,v 1.8 2009/06/20 20:47:30 christos Exp $")
 static const int mdays[] = {
     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
-
-#ifdef __DJGPP__
-#define timespec timeval
-#define tv_nsec tv_usec
-#endif
-
 
 /*
  * Return the number of days between jan 01 1601 and jan 01 of year.
@@ -127,7 +121,7 @@ cdf_timestamp_to_timespec(struct timespec *ts, cdf_timestamp_t t)
 	tm.tm_year = (int)(CDF_BASE_YEAR + (t / 365));
 
 	rdays = cdf_getdays(tm.tm_year);
-	t -= rdays;
+	t -= rdays - 1;
 	tm.tm_mday = cdf_getday(tm.tm_year, (int)t);
 	tm.tm_mon = cdf_getmonth(tm.tm_year, (int)t);
 	tm.tm_wday = 0;
@@ -171,6 +165,18 @@ cdf_timespec_to_timestamp(cdf_timestamp_t *t, const struct timespec *ts)
 	return 0;
 }
 
+char *
+cdf_ctime(const time_t *sec)
+{
+	static char ctbuf[26];
+	char *ptr = ctime(sec);
+	if (ptr != NULL)
+		return ptr;
+	(void)snprintf(ctbuf, sizeof(ctbuf), "*Bad* 0x%16.16llx\n",
+	    (long long)*sec);
+	return ctbuf;
+}
+
 
 #ifdef TEST
 int
@@ -182,7 +188,7 @@ main(int argc, char *argv[])
 	char *p, *q;
 
 	cdf_timestamp_to_timespec(&ts, tst);
-	p = ctime(&ts.tv_sec);
+	p = cdf_ctime(&ts.tv_sec);
 	if ((q = strchr(p, '\n')) != NULL)
 		*q = '\0';
 	if (strcmp(ref, p) != 0)

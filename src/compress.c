@@ -35,7 +35,7 @@
 #include "file.h"
 
 #ifndef lint
-FILE_RCSID("@(#)$File: compress.c,v 1.64 2009/05/08 17:41:58 christos Exp $")
+FILE_RCSID("@(#)$File: compress.c,v 1.68 2011/12/08 12:38:24 rrt Exp $")
 #endif
 
 #include "magic.h"
@@ -45,7 +45,9 @@ FILE_RCSID("@(#)$File: compress.c,v 1.64 2009/05/08 17:41:58 christos Exp $")
 #endif
 #include <string.h>
 #include <errno.h>
+#ifndef __MINGW32__
 #include <sys/ioctl.h>
+#endif
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
@@ -77,14 +79,14 @@ private const struct {
 	{ "BZh",      3, { "bzip2", "-cd", NULL }, 1 },		/* bzip2-ed */
 	{ "LZIP",     4, { "lzip", "-cdq", NULL }, 1 },
  	{ "\3757zXZ\0",6,{ "xz", "-cd", NULL }, 1 },		/* XZ Utils */
+ 	{ "LRZI",     4, { "lrzip", "-dqo-", NULL }, 1 },	/* LRZIP */
 };
-
-private size_t ncompr = sizeof(compr) / sizeof(compr[0]);
 
 #define NODATA ((size_t)~0)
 
-
 private ssize_t swrite(int, const void *, size_t);
+#if HAVE_FORK
+private size_t ncompr = sizeof(compr) / sizeof(compr[0]);
 private size_t uncompressbuf(struct magic_set *, int, size_t,
     const unsigned char *, unsigned char **, size_t);
 #ifdef BUILTIN_DECOMPRESS
@@ -132,12 +134,11 @@ file_zmagic(struct magic_set *ms, int fd, const char *name,
 		}
 	}
 error:
-	if (newbuf)
-		free(newbuf);
+	free(newbuf);
 	ms->flags |= MAGIC_COMPRESS;
 	return rv;
 }
-
+#endif
 /*
  * `safe' write for sockets and pipes.
  */
@@ -167,9 +168,12 @@ swrite(int fd, const void *buf, size_t n)
  * `safe' read for sockets and pipes.
  */
 protected ssize_t
-sread(int fd, void *buf, size_t n, int canbepipe)
+sread(int fd, void *buf, size_t n, int canbepipe __attribute__ ((unused)))
 {
-	ssize_t rv, cnt;
+	ssize_t rv;
+#ifdef FD_ZERO
+	ssize_t cnt;
+#endif
 #ifdef FIONREAD
 	int t = 0;
 #endif
@@ -236,7 +240,10 @@ file_pipe2file(struct magic_set *ms, int fd, const void *startbuf,
 {
 	char buf[4096];
 	ssize_t r;
-	int tfd, te;
+	int tfd;
+#ifdef HAVE_MKSTEMP
+	int te;
+#endif
 
 	(void)strlcpy(buf, "/tmp/file.XXXXXX", sizeof buf);
 #ifndef HAVE_MKSTEMP
@@ -294,7 +301,7 @@ file_pipe2file(struct magic_set *ms, int fd, const void *startbuf,
 	}
 	return fd;
 }
-
+#if HAVE_FORK
 #ifdef BUILTIN_DECOMPRESS
 
 #define FHCRC		(1 << 1)
@@ -374,6 +381,7 @@ uncompressbuf(struct magic_set *ms, int fd, size_t method,
 {
 	int fdin[2], fdout[2];
 	ssize_t r;
+	pid_t pid;
 
 #ifdef BUILTIN_DECOMPRESS
         /* FIXME: This doesn't cope with bzip2 */
@@ -387,7 +395,7 @@ uncompressbuf(struct magic_set *ms, int fd, size_t method,
 		file_error(ms, errno, "cannot create pipe");	
 		return NODATA;
 	}
-	switch (fork()) {
+	switch (pid = fork()) {
 	case 0:	/* child */
 		(void) close(0);
 		if (fd != -1) {
@@ -484,7 +492,7 @@ err:
 			(void) close(fdin[1]);
 		(void) close(fdout[0]);
 #ifdef WNOHANG
-		while (waitpid(-1, NULL, WNOHANG) != -1)
+		while (waitpid(pid, NULL, WNOHANG) != -1)
 			continue;
 #else
 		(void)wait(NULL);
@@ -494,3 +502,4 @@ err:
 		return n;
 	}
 }
+#endif
