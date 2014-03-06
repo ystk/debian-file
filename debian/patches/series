@@ -83,3 +83,4 @@
 cdf-cert-bff-crashes
 cdf-restore-prefix
 cdf-word-detection
+CVE-2014-1943.patch

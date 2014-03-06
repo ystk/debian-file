@@ -1,3 +1,9 @@
+file (5.04-5+squeeze3) squeeze-security; urgency=high
+
+  * Fix CVE-2014-1943 for file 5.04/Debian squeeze. Closes: #738832
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Thu, 13 Feb 2014 22:31:08 +0100
+
 file (5.04-5+squeeze2) squeeze-security; urgency=high
 
   * Fix overeager detection of CDF file as Word documents
