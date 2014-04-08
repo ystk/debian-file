@@ -1,0 +1,17 @@
+Upstream-Author: Reuben Thomas <rrt@sc3d.org>
+Date: Mon Sep 20 14:24:01 2010 +0000
+Upstream-Commit: b05926f28f3cab0ef77101f89be154329dcb8dea
+Description:
+ Use '%s' format to print untrusted string.
+
+--- a/src/softmagic.c
++++ b/src/softmagic.c
+@@ -1592,7 +1592,7 @@
+ 		if (offset == 0)
+ 			return 0;
+ 	  	if ((ms->flags & (MAGIC_MIME|MAGIC_APPLE)) == 0 &&
+-		    file_printf(ms, m->desc) == -1)
++		    file_printf(ms, "%s", m->desc) == -1)
+ 			return -1;
+ 		if (nbytes < offset)
+ 			return 0;

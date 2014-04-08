@@ -1,0 +1,17 @@
+Upstream-Author: Christos Zoulas <christos@zoulas.com>
+Date: Mon Mar 25 14:06:55 2013 +0000
+Upstream-Commit ef2329cf71acb59204dd981e2c6cce6c81fe467c
+Description:
+ limit to 100 repetitions to avoid excessive backtracking Carsten Wolff
+
+--- a/magic/Magdir/commands
++++ b/magic/Magdir/commands
+@@ -52,7 +52,7 @@
+ # update to distinguish from *.vcf files
+ # this is broken because postscript has /EBEGIN{ for example.
+ #0	search/Ww	BEGIN {			awk script text
+-0	regex		=^\\s*BEGIN\\s*[{]	awk script text
++0	regex		=^\\s{0,100}BEGIN\\s{0,100}[{]	awk script text
+ 
+ # AT&T Bell Labs' Plan 9 shell
+ 0	string/w	#!\ /bin/rc	Plan 9 rc shell script text executable

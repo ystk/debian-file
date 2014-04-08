@@ -1,0 +1,17 @@
+Upstream-Author: Christos Zoulas <christos@zoulas.com>
+Date: Thu Jan 28 23:25:18 2010 +0000
+Upstream-Commit: 0d74a0ec9fc45bd0887b157747012a3aa694f4ae
+Description:
+ fix segv from loop overrun
+
+--- a/src/softmagic.c
++++ b/src/softmagic.c
+@@ -945,7 +945,7 @@
+ 			buf = (const char *)s + offset;
+ 			end = last = (const char *)s + nbytes;
+ 			/* mget() guarantees buf <= last */
+-			for (lines = linecnt, b = buf; lines &&
++			for (lines = linecnt, b = buf; lines && b < end &&
+ 			     ((b = CAST(const char *,
+ 				 memchr(c = b, '\n', CAST(size_t, (end - b)))))
+ 			     || (b = CAST(const char *,

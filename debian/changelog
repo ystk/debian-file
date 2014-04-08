@@ -1,3 +1,24 @@
+file (5.04-5+squeeze5) squeeze-security; urgency=high
+
+  * Fix regression introduced in DSA-2873-1. Closes: #742262, #742265
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sat, 22 Mar 2014 18:57:19 +0100
+
+file (5.04-5+squeeze4) squeeze-security; urgency=high
+
+  * Backport upstream commit FILE5_14-2-gef2329c:
+    limit [awk detection] to 100 repetitions to avoid excessive
+    backtracking. Closes: #703993
+  * Backport upstream commit FILE5_04-2-g0d74a0e:
+    fix segv from loop overrun
+  * Backport upstream commit FILE5_04-47-gb05926f:
+    Use '%s' format to print untrusted string.
+  * Backport upstream commit FILE5_16-24-g4475585 and
+    FILE5_17-20-g70c65d2:
+    Check properly for exceeding the offset. (CVE-2014-2270)
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Wed, 05 Mar 2014 22:41:59 +0100
+
 file (5.04-5+squeeze3) squeeze-security; urgency=high
 
   * Fix CVE-2014-1943 for file 5.04/Debian squeeze. Closes: #738832

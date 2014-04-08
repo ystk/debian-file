@@ -1,0 +1,10 @@
+--- a/magic/Magdir/commands
++++ b/magic/Magdir/commands
+@@ -53,6 +53,7 @@
+ # this is broken because postscript has /EBEGIN{ for example.
+ #0	search/Ww	BEGIN {			awk script text
+ 0	regex		=^\\s{0,100}BEGIN\\s{0,100}[{]	awk script text
++!:strength - 12
+ 
+ # AT&T Bell Labs' Plan 9 shell
+ 0	string/w	#!\ /bin/rc	Plan 9 rc shell script text executable
