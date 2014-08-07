@@ -1,3 +1,16 @@
+file (5.04-5+squeeze6) squeeze-lts; urgency=medium
+
+  * Fix various denial of service attacks:
+  - CVE-2014-0207 using 6d209c1c from upstream git.
+  - CVE-2014-0237 using b8acc837.
+  - CVE-2014-0238 using f97486ef.
+  - CVE-2014-3478 using 27a14bc7, 2f0eeb07 and 57e4574e.
+  - CVE-2014-3479 using 36fadd29.
+  - CVE-2014-3480 using 40bade80.
+  - CVE-2014-3487 using 93e063ee.
+
+ -- Holger Levsen <holger@debian.org>  Thu, 31 Jul 2014 13:43:27 +0000
+
 file (5.04-5+squeeze5) squeeze-security; urgency=high
 
   * Fix regression introduced in DSA-2873-1. Closes: #742262, #742265

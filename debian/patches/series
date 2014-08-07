@@ -89,3 +89,10 @@ fix-segv-from-loop-overrun.patch
 use-s-format-to-print-untrusted-string.patch
 CVE-2014-2270.patch
 DSA-2873-1-regression.patch
+CVE-2014-0207.patch
+CVE-2014-0237.patch
+CVE-2014-0238.patch
+CVE-2014-3478.patch
+CVE-2014-3479.patch
+CVE-2014-3480.patch
+CVE-2014-3487.patch
