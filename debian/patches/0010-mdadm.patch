@@ -1,0 +1,30 @@
+Author: Russell Coker <russell@coker.com.au>
+Description: Adding new magics for Linux Software RAID (Closes: #663454).
+
+--- a/magic/Magdir/linux
++++ b/magic/Magdir/linux
+@@ -413,3 +413,24 @@
+ >>>>20		belong		>16
+ >>>>>36		belong		x	\b, DT structure block size=%d
+ 
++# Linux Software RAID (mdadm)
++# Russell Coker <russell@coker.com.au>
++4096	lelong	0xa92b4efc	Linux Software RAID
++>4100	lelong	x		version 1.2 (%d)
++>4112	belong	x		UUID=%8x:
++>4116	belong	x		\b%8x:
++>4120	belong	x		\b%8x:
++>4124	belong	x		\b%8x
++>4128	string	x		name=%s
++>4168	lelong	x		level=%d
++>4188	lelong	x		disks=%d
++
++0	lelong	0xa92b4efc	Linux Software RAID
++>4	lelong	x		version 1.1 (%d)
++>16	belong	x		UUID=%8x:
++>20	belong	x		\b%8x:
++>24	belong	x		\b%8x:
++>28	belong	x		\b%8x
++>32	string	x		name=%s
++>72	lelong	x		level=%d
++>92	lelong	x		disks=%d

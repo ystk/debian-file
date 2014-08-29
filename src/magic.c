@@ -33,7 +33,7 @@
 #include "file.h"
 
 #ifndef	lint
-FILE_RCSID("@(#)$File: magic.c,v 1.74 2011/05/26 01:27:59 christos Exp $")
+FILE_RCSID("@(#)$File: magic.c,v 1.84 2014/05/14 23:15:42 christos Exp $")
 #endif	/* lint */
 
 #include "magic.h"
@@ -71,7 +71,6 @@ FILE_RCSID("@(#)$File: magic.c,v 1.74 2011/05/26 01:27:59 christos Exp $")
 #endif
 #endif
 
-private void free_mlist(struct mlist *);
 private void close_and_restore(const struct magic_set *, const char *, int,
     const struct stat *);
 private int unreadable_info(struct magic_set *, mode_t, const char *);
@@ -101,16 +100,21 @@ get_default_magic(void)
 	if ((home = getenv("HOME")) == NULL)
 		return MAGIC;
 
-	if (asprintf(&hmagicpath, "%s/.magic", home) < 0)
+	if (asprintf(&hmagicpath, "%s/.magic.mgc", home) < 0)
 		return MAGIC;
-	if (stat(hmagicpath, &st) == -1)
-		goto out;
-	if (S_ISDIR(st.st_mode)) {
+	if (stat(hmagicpath, &st) == -1) {
 		free(hmagicpath);
-		if (asprintf(&hmagicpath, "%s/%s", home, hmagic) < 0)
+		if (asprintf(&hmagicpath, "%s/.magic", home) < 0)
 			return MAGIC;
-		if (access(hmagicpath, R_OK) == -1)
+		if (stat(hmagicpath, &st) == -1)
 			goto out;
+		if (S_ISDIR(st.st_mode)) {
+			free(hmagicpath);
+			if (asprintf(&hmagicpath, "%s/%s", home, hmagic) < 0)
+				return MAGIC;
+			if (access(hmagicpath, R_OK) == -1)
+				goto out;
+		}
 	}
 
 	if (asprintf(&default_magic, "%s:%s", hmagicpath, MAGIC) < 0)
@@ -122,8 +126,9 @@ out:
 	free(hmagicpath);
 	return MAGIC;
 #else
-	char *hmagicp = hmagicpath;
+	char *hmagicp;
 	char *tmppath = NULL;
+	hmagicpath = NULL;
 
 #define APPENDPATH() \
 	do { \
@@ -210,63 +215,21 @@ magic_getpath(const char *magicfile, int action)
 public struct magic_set *
 magic_open(int flags)
 {
-	struct magic_set *ms;
-	size_t len;
-
-	if ((ms = CAST(struct magic_set *, calloc((size_t)1,
-	    sizeof(struct magic_set)))) == NULL)
-		return NULL;
-
-	if (magic_setflags(ms, flags) == -1) {
-		errno = EINVAL;
-		goto free;
-	}
-
-	ms->o.buf = ms->o.pbuf = NULL;
-	len = (ms->c.len = 10) * sizeof(*ms->c.li);
-
-	if ((ms->c.li = CAST(struct level_info *, malloc(len))) == NULL)
-		goto free;
-
-	ms->event_flags = 0;
-	ms->error = -1;
-	ms->mlist = NULL;
-	ms->file = "unknown";
-	ms->line = 0;
-	return ms;
-free:
-	free(ms);
-	return NULL;
-}
-
-private void
-free_mlist(struct mlist *mlist)
-{
-	struct mlist *ml;
-
-	if (mlist == NULL)
-		return;
-
-	for (ml = mlist->next; ml != mlist;) {
-		struct mlist *next = ml->next;
-		struct magic *mg = ml->magic;
-		file_delmagic(mg, ml->mapped, ml->nmagic);
-		free(ml);
-		ml = next;
-	}
-	free(ml);
+	return file_ms_alloc(flags);
 }
 
 private int
 unreadable_info(struct magic_set *ms, mode_t md, const char *file)
 {
-	/* We cannot open it, but we were able to stat it. */
-	if (access(file, W_OK) == 0)
-		if (file_printf(ms, "writable, ") == -1)
-			return -1;
-	if (access(file, X_OK) == 0)
-		if (file_printf(ms, "executable, ") == -1)
-			return -1;
+	if (file) {
+		/* We cannot open it, but we were able to stat it. */
+		if (access(file, W_OK) == 0)
+			if (file_printf(ms, "writable, ") == -1)
+				return -1;
+		if (access(file, X_OK) == 0)
+			if (file_printf(ms, "executable, ") == -1)
+				return -1;
+	}
 	if (S_ISREG(md))
 		if (file_printf(ms, "regular file, ") == -1)
 			return -1;
@@ -278,11 +241,9 @@ unreadable_info(struct magic_set *ms, mode_t md, const char *file)
 public void
 magic_close(struct magic_set *ms)
 {
-	free_mlist(ms->mlist);
-	free(ms->o.pbuf);
-	free(ms->o.buf);
-	free(ms->c.li);
-	free(ms);
+	if (ms == NULL)
+		return;
+	file_ms_free(ms);
 }
 
 /*
@@ -291,44 +252,40 @@ magic_close(struct magic_set *ms)
 public int
 magic_load(struct magic_set *ms, const char *magicfile)
 {
-	struct mlist *ml = file_apprentice(ms, magicfile, FILE_LOAD);
-	if (ml) {
-		free_mlist(ms->mlist);
-		ms->mlist = ml;
-		return 0;
-	}
-	return -1;
+	if (ms == NULL)
+		return -1;
+	return file_apprentice(ms, magicfile, FILE_LOAD);
 }
 
 public int
 magic_compile(struct magic_set *ms, const char *magicfile)
 {
-	struct mlist *ml = file_apprentice(ms, magicfile, FILE_COMPILE);
-	free_mlist(ml);
-	return ml ? 0 : -1;
+	if (ms == NULL)
+		return -1;
+	return file_apprentice(ms, magicfile, FILE_COMPILE);
 }
 
 public int
 magic_check(struct magic_set *ms, const char *magicfile)
 {
-	struct mlist *ml = file_apprentice(ms, magicfile, FILE_CHECK);
-	free_mlist(ml);
-	return ml ? 0 : -1;
+	if (ms == NULL)
+		return -1;
+	return file_apprentice(ms, magicfile, FILE_CHECK);
 }
 
 public int
 magic_list(struct magic_set *ms, const char *magicfile)
 {
-	struct mlist *ml = file_apprentice(ms, magicfile, FILE_LIST);
-	free_mlist(ml);
-	return ml ? 0 : -1;
+	if (ms == NULL)
+		return -1;
+	return file_apprentice(ms, magicfile, FILE_LIST);
 }
 
 private void
 close_and_restore(const struct magic_set *ms, const char *name, int fd,
     const struct stat *sb)
 {
-	if (fd == STDIN_FILENO)
+	if (fd == STDIN_FILENO || name == NULL)
 		return;
 	(void) close(fd);
 
@@ -365,6 +322,8 @@ close_and_restore(const struct magic_set *ms, const char *name, int fd,
 public const char *
 magic_descriptor(struct magic_set *ms, int fd)
 {
+	if (ms == NULL)
+		return NULL;
 	return file_or_fd(ms, NULL, fd);
 }
 
@@ -374,6 +333,8 @@ magic_descriptor(struct magic_set *ms, int fd)
 public const char *
 magic_file(struct magic_set *ms, const char *inname)
 {
+	if (ms == NULL)
+		return NULL;
 	return file_or_fd(ms, inname, STDIN_FILENO);
 }
 
@@ -385,6 +346,10 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 	struct stat	sb;
 	ssize_t nbytes = 0;	/* number of bytes read from a datafile */
 	int	ispipe = 0;
+	off_t	pos = (off_t)-1;
+
+	if (file_reset(ms) == -1)
+		goto out;
 
 	/*
 	 * one extra for terminating '\0', and
@@ -393,9 +358,6 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 #define SLOP (1 + sizeof(union VALUETYPE))
 	if ((buf = CAST(unsigned char *, malloc(HOWMANY + SLOP))) == NULL)
 		return NULL;
-
-	if (file_reset(ms) == -1)
-		goto done;
 
 	switch (file_fsmagic(ms, inname, &sb)) {
 	case -1:		/* error */
@@ -407,13 +369,22 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 		goto done;
 	}
 
+#ifdef WIN32
+	/* Place stdin in binary mode, so EOF (Ctrl+Z) doesn't stop early. */
+	if (fd == STDIN_FILENO)
+		_setmode(STDIN_FILENO, O_BINARY);
+#endif
+
 	if (inname == NULL) {
 		if (fstat(fd, &sb) == 0 && S_ISFIFO(sb.st_mode))
 			ispipe = 1;
+		else
+			pos = lseek(fd, (off_t)0, SEEK_CUR);
 	} else {
 		int flags = O_RDONLY|O_BINARY;
+		int okstat = stat(inname, &sb) == 0;
 
-		if (stat(inname, &sb) == 0 && S_ISFIFO(sb.st_mode)) {
+		if (okstat && S_ISFIFO(sb.st_mode)) {
 #ifdef O_NONBLOCK
 			flags |= O_NONBLOCK;
 #endif
@@ -422,7 +393,20 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 
 		errno = 0;
 		if ((fd = open(inname, flags)) < 0) {
-			if (unreadable_info(ms, sb.st_mode, inname) == -1)
+#ifdef WIN32
+			/*
+			 * Can't stat, can't open.  It may have been opened in
+			 * fsmagic, so if the user doesn't have read permission,
+			 * allow it to say so; otherwise an error was probably
+			 * displayed in fsmagic.
+			 */
+			if (!okstat && errno == EACCES) {
+				sb.st_mode = S_IFBLK;
+				okstat = 1;
+			}
+#endif
+			if (okstat &&
+			    unreadable_info(ms, sb.st_mode, inname) == -1)
 				goto done;
 			rv = 0;
 			goto done;
@@ -456,8 +440,18 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 		}
 
 	} else {
-		if ((nbytes = read(fd, (char *)buf, HOWMANY)) == -1) {
-			file_error(ms, errno, "cannot read `%s'", inname);
+		/* Windows refuses to read from a big console buffer. */
+		size_t howmany =
+#if defined(WIN32) && HOWMANY > 8 * 1024
+				_isatty(fd) ? 8 * 1024 :
+#endif
+				HOWMANY;
+		if ((nbytes = read(fd, (char *)buf, howmany)) == -1) {
+			if (inname == NULL && fd != STDIN_FILENO)
+				file_error(ms, errno, "cannot read fd %d", fd);
+			else
+				file_error(ms, errno, "cannot read `%s'",
+				    inname == NULL ? "/dev/stdin" : inname);
 			goto done;
 		}
 	}
@@ -468,7 +462,10 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
 	rv = 0;
 done:
 	free(buf);
+	if (pos != (off_t)-1)
+		(void)lseek(fd, pos, SEEK_SET);
 	close_and_restore(ms, inname, fd, &sb);
+out:
 	return rv == 0 ? file_getbuffer(ms) : NULL;
 }
 
@@ -476,6 +473,8 @@ done:
 public const char *
 magic_buffer(struct magic_set *ms, const void *buf, size_t nb)
 {
+	if (ms == NULL)
+		return NULL;
 	if (file_reset(ms) == -1)
 		return NULL;
 	/*
@@ -492,22 +491,34 @@ magic_buffer(struct magic_set *ms, const void *buf, size_t nb)
 public const char *
 magic_error(struct magic_set *ms)
 {
+	if (ms == NULL)
+		return "Magic database is not open";
 	return (ms->event_flags & EVENT_HAD_ERR) ? ms->o.buf : NULL;
 }
 
 public int
 magic_errno(struct magic_set *ms)
 {
+	if (ms == NULL)
+		return EINVAL;
 	return (ms->event_flags & EVENT_HAD_ERR) ? ms->error : 0;
 }
 
 public int
 magic_setflags(struct magic_set *ms, int flags)
 {
+	if (ms == NULL)
+		return -1;
 #if !defined(HAVE_UTIME) && !defined(HAVE_UTIMES)
 	if (flags & MAGIC_PRESERVE_ATIME)
 		return -1;
 #endif
 	ms->flags = flags;
 	return 0;
+}
+
+public int
+magic_version(void)
+{
+	return MAGIC_VERSION;
 }

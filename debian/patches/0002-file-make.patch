@@ -1,0 +1,14 @@
+Author: Michael Piefel <piefel@debian.org>
+Description: n/a
+
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -471,7 +471,7 @@
+ 
+ file$(EXEEXT): $(file_OBJECTS) $(file_DEPENDENCIES) $(EXTRA_file_DEPENDENCIES) 
+ 	@rm -f file$(EXEEXT)
+-	$(AM_V_CCLD)$(LINK) $(file_OBJECTS) $(file_LDADD) $(LIBS)
++	$(AM_V_CCLD)$(LINK) $(file_OBJECTS) $(file_LDADD)
+ 
+ mostlyclean-compile:
+ 	-rm -f *.$(OBJEXT)

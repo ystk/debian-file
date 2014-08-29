@@ -2,7 +2,9 @@
 
 SHELL := sh -e
 
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 -include /usr/share/python/python.mk
+endif
 
 DEB_HOST_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -17,31 +19,44 @@ endif
 # HOWMANY is the number of bytes looked at by file
 CFLAGS += -DHOWMANY=0x18000
 
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 PYTHON_VERSIONS=$(shell pyversions -r debian/control)
+PYTHON3_VERSIONS=$(shell py3versions -r debian/control)
+endif
 
 %:
-	dh ${@} --with autotools_dev,python2
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
+	dh ${@} --with autoreconf,python2,python3
+else
+	dh ${@} --with autoreconf
+endif
 
 override_dh_auto_clean:
 	dh_auto_clean
 
 	rm -rf python/build
+	rm -rf python/__pycache__
+	rm -f python/*.pyc
 
 override_dh_auto_build:
 	dh_auto_build
 
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 	for python in $(PYTHON_VERSIONS); \
 	do \
 		(cd python && $$python setup.py build_ext \
 			-L$(CURDIR)/src/.libs); \
 	done
 
-	for python in $(PYTHON_VERSIONS); do \
-		(cd python && $$python-dbg setup.py build_ext -L$(CURDIR)/src/.libs); \
+	for python in $(PYTHON3_VERSIONS); \
+	do \
+		(cd python && $$python setup.py build_ext \
+			-L$(CURDIR)/src/.libs); \
 	done
+endif
 
 override_dh_auto_configure:
-	dh_auto_configure -- $(CROSS) --prefix=/usr --datadir=\$${prefix}/share --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) --mandir=\$${prefix}/share/man --enable-fsect-man5 CFLAGS="$(CFLAGS)"
+	dh_auto_configure -- $(CROSS) --prefix=/usr --datadir=\$${prefix}/share --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) --mandir=\$${prefix}/share/man --enable-fsect-man5 --enable-static --disable-silent-rules CFLAGS="$(CFLAGS)"
 
 override_dh_auto_install:
 	dh_auto_install
@@ -51,19 +66,19 @@ override_dh_auto_install:
 	install -D -m 0644 magic/magic.local debian/tmp/etc/magic
 	install -D -m 0644 magic/magic.local debian/tmp/etc/magic.mime
 
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 	for python in $(PYTHON_VERSIONS); \
 	do \
 		(cd python && $$python setup.py install --no-compile \
 			--root=$(CURDIR)/debian/python-magic $(py_setup_install_args)); \
 	done
 
-	for python in $(PYTHON_VERSIONS); do \
-		(cd python && $$python-dbg setup.py install --no-compile \
-			--root=$(CURDIR)/debian/python-magic-dbg $(py_setup_install_args)); \
+	for python in $(PYTHON3_VERSIONS); \
+	do \
+		(cd python && $$python setup.py install --no-compile \
+			--root=$(CURDIR)/debian/python3-magic $(py_setup_install_args)); \
 	done
-
-	find debian/python-*-dbg ! -type d ! -name '*.so' | xargs rm -f
-	find debian/python-*-dbg -depth -empty -exec rmdir {} \;
+endif
 
 	# Installing additional headers
 	mkdir -p debian/libmagic-dev/usr/include/file
@@ -73,20 +88,29 @@ override_dh_auto_install:
 	rm -f debian/tmp/usr/lib/*/*.la
 
 override_dh_builddeb:
-	dh_builddeb -- -Zxz -z9
+	dh_builddeb -- -Zxz
 
 override_dh_install:
 	dh_install --fail-missing
 
 override_dh_shlibdeps:
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+	# use just built file in dh_shlibdeps
+	PATH=$(CURDIR)/debian/file/usr/bin:$$PATH \
+		LD_LIBRARY_PATH=$(CURDIR)/debian/libmagic1/usr/lib/$(DEB_HOST_MULTIARCH)$${LD_LIBRARY_PATH+:$${LD_LIBRARY_PATH}} \
+		MAGIC=$(CURDIR)/debian/libmagic1/usr/share/file/magic.mgc \
+		dh_shlibdeps -Llibmagic1 -ldebian/libmagic1/usr/lib
+else
 	dh_shlibdeps -Llibmagic1 -ldebian/libmagic1/usr/lib
+endif
 
 override_dh_strip:
-ifeq (,$(findstring -i, $(DH_OPTIONS)))
-	dh_strip -Npython-magic -Npython-magic-dbg
-	DH_OPTIONS= dh_strip -ppython-magic --dbg-package=python-magic-dbg
-
-	rm -rf debian/python-magic-dbg/usr/share/doc/python-magic-dbg
-	mkdir -p debian/python-magic-dbg/usr/share/doc
-	ln -s python-magic debian/python-magic-dbg/usr/share/doc/python-magic-dbg
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+	# use just built file in dh_strip
+	PATH=$(CURDIR)/debian/file/usr/bin:$$PATH \
+		LD_LIBRARY_PATH=$(CURDIR)/debian/libmagic1/usr/lib/$(DEB_HOST_MULTIARCH)$${LD_LIBRARY_PATH+:$${LD_LIBRARY_PATH}} \
+		MAGIC=$(CURDIR)/debian/libmagic1/usr/share/file/magic.mgc \
+		dh_strip --dbg-package=file-dbg
+else
+	dh_strip --dbg-package=file-dbg
 endif
