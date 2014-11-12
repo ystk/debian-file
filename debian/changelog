@@ -1,3 +1,19 @@
+file (5.04-5+squeeze7) squeeze-lts; urgency=high
+
+  * Acknowledge NMU but update descriptions.
+  * Fix vulnerabilites
+    - CVE-2014-3538
+      file does not properly restrict the amount of data read during
+      a regex search, which allows remote attackers to cause a
+      denial of service (CPU consumption).
+    - CVE-2014-3587
+      Integer overflow in the cdf_read_property_info function in
+      cdf.c allows remote attackers to cause a denial of service
+      (application crash).
+  * Update maintainer information
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Wed, 10 Sep 2014 13:15:20 +0200
+
 file (5.04-5+squeeze6) squeeze-lts; urgency=medium
 
   * Fix various denial of service attacks:
