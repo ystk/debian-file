@@ -1,3 +1,9 @@
+file (5.04-5+squeeze9) squeeze-lts; urgency=high
+
+  * Fix several security issues, Closes: #773148
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Fri, 09 Jan 2015 00:11:26 +0100
+
 file (5.04-5+squeeze8) squeeze-lts; urgency=high
 
   * Fix note bounds reading, Francisco Alonso / Red Hat (CVE-2014-3710).
