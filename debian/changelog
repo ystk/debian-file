@@ -1,3 +1,61 @@
+file (1:5.22+15-2) unstable; urgency=medium
+
+  * Restore detection of some jpeg files. Closes: #780095
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Tue, 10 Mar 2015 20:41:54 +0100
+
+file (1:5.22+15-1) unstable; urgency=high
+
+  * Use upstream commit FILE5_22-11-ge452600 to include yet another
+    security fix (PR/411).
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Fri, 09 Jan 2015 08:01:00 +0100
+
+file (1:5.22+2-1) unstable; urgency=medium
+
+  * New upstream version. Closes: #774219
+  * Use upstream commit FILE5_22-2-g9f0601f to include all recent
+    fixes.
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sat, 03 Jan 2015 14:24:57 +0100
+
+file (1:5.21+15-1) unstable; urgency=high
+
+  * Fixes a security issue, urgency set to high
+  * New upstream version 5.21
+    - Limit number of elf program and sections processing
+    - Reduce the number of recursion levels
+      Closes: #773148 (CVE-2014-8116, CVE-2014-8117)
+  * Use upstream commit FILE5_21-15-ge7e96a9 to include all recent
+    fixes.
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 21 Dec 2014 23:21:37 +0100
+
+file (1:5.20-2) unstable; urgency=high
+
+  * Fixes a security issue, urgency set to high
+  * Cherry-pick upstream commit FILE5_20-5-g39c7ac1:
+    Fix note bounds reading, Francisco Alonso / Red Hat (CVE-2014-3710).
+    Closes: #768806
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 09 Nov 2014 14:46:05 +0100
+
+file (1:5.20-1) unstable; urgency=low
+
+  * New upstream version 5.20. Addresses:
+    - more audio/video formats. Closes: #762561
+    - relax dis-detection of Perl scripts as AWK, part of #698569
+  * Update the syntax of the Build-Profiles field. Closes: #764218
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 19 Oct 2014 15:03:08 +0200
+
+file (1:5.19-2) unstable; urgency=high
+
+  * urgency set to high to address a security problem
+  * Cherry-pick upstream commit 0641e56 to fix CVE-2014-3587
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 07 Sep 2014 19:01:36 +0200
+
 file (1:5.19-1) unstable; urgency=low
 
   * New upstream version 5.19. Addresses:

@@ -3,9 +3,9 @@ Description: Adding new magics for Linux Software RAID (Closes: #663454).
 
 --- a/magic/Magdir/linux
 +++ b/magic/Magdir/linux
-@@ -413,3 +413,24 @@
- >>>>20		belong		>16
- >>>>>36		belong		x	\b, DT structure block size=%d
+@@ -417,6 +417,28 @@
+ 0		lelong		0xde020109	locale archive
+ >24		lelong		x		%d strings
  
 +# Linux Software RAID (mdadm)
 +# Russell Coker <russell@coker.com.au>
@@ -28,3 +28,7 @@ Description: Adding new magics for Linux Software RAID (Closes: #663454).
 +>32	string	x		name=%s
 +>72	lelong	x		level=%d
 +>92	lelong	x		disks=%d
++
+ # Summary:     Database file for mlocate
+ # Description: A database file as used by mlocate, a fast implementation
+ #              of locate/updatedb. It uses merging to reuse the existing
