@@ -7,7 +7,8 @@
 # Provided 1998/08/22 by
 # David Mediavilla <davidme.news@REMOVEIFNOTSPAMusa.net>
 1	search/1	InternetShortcut	MS Windows 95 Internet shortcut text
->24	search/1	>\ 			(URL=<%s>)
+>17	search/100	URL= 			(URL=<
+>>&0	string		x			\b%s>)
 
 # OS/2 URL objects
 # Provided 1998/08/22 by
