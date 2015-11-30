@@ -1,3 +1,9 @@
+file (5.04-5+squeeze10) squeeze-lts; urgency=high
+
+  * Fix partial reads in readelf.c [CVE-2014-9653]. Closes: #777585
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 19 Apr 2015 13:23:01 +0200
+
 file (5.04-5+squeeze9) squeeze-lts; urgency=high
 
   * Fix several security issues, Closes: #773148
