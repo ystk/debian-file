@@ -1,3 +1,13 @@
+file (1:5.22+15-2+deb8u1) stable; urgency=medium
+
+  * Fix handling of file's --parameter option. Closes: #798410
+    - The file program segfaults after processing the --parameter
+      parameter. [commit FILE5_24-22-g27b4e34]
+    - Any --parameter values have no effect if used with
+      --files-from. [commit FILE5_24-23-g4ddb783]
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 13 Sep 2015 18:27:47 +0200
+
 file (1:5.22+15-2) unstable; urgency=medium
 
   * Restore detection of some jpeg files. Closes: #780095
