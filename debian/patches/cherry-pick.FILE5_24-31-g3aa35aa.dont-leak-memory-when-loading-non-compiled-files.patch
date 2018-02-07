@@ -1,0 +1,32 @@
+Subject: Don't leak memory when loading non-compiled files
+Origin: FILE5_24-31-g3aa35aa
+Upstream-Author: Christos Zoulas <christos@zoulas.com>
+Date: Thu Sep 10 13:59:47 2015 +0000
+
+--- a/src/apprentice.c
++++ b/src/apprentice.c
+@@ -538,6 +538,7 @@
+ private void
+ apprentice_unmap(struct magic_map *map)
+ {
++	size_t i;
+ 	if (map == NULL)
+ 		return;
+ 
+@@ -550,6 +551,8 @@
+ #endif
+ 	case MAP_TYPE_MALLOC:
+ 		free(map->p);
++		for (i = 0; i < MAGIC_SETS; i++)
++			free(map->magic[i]);
+ 		break;
+ 	case MAP_TYPE_USER:
+ 		break;
+@@ -1285,6 +1288,7 @@
+ 		file_oomem(ms, sizeof(*map));
+ 		return NULL;
+ 	}
++	map->type = MAP_TYPE_MALLOC;
+ 
+ 	/* print silly verbose header for USG compat. */
+ 	if (action == FILE_CHECK)

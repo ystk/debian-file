@@ -1,0 +1,22 @@
+Subject: PR/569: Shi Yin: Fix memory leak
+Origin: FILE5_28-42-g10ee4ec
+Upstream-Author: Christos Zoulas <christos@zoulas.com>
+Date: Sun Sep 11 13:53:02 2016 +0000
+Comment: Only relevant parts of that commit were used
+
+--- a/src/apprentice.c
++++ b/src/apprentice.c
+@@ -404,11 +404,11 @@
+ {
+ 	struct mlist *ml;
+ 
+-	mlp->map = idx == 0 ? map : NULL;
++	mlp->map = NULL;
+ 	if ((ml = CAST(struct mlist *, malloc(sizeof(*ml)))) == NULL)
+ 		return -1;
+ 
+-	ml->map = NULL;
++	ml->map = idx == 0 ? map : NULL;
+ 	ml->magic = map->magic[idx];
+ 	ml->nmagic = map->nmagic[idx];
+ 
