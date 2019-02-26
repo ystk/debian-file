@@ -1,3 +1,10 @@
+file (1:5.22+15-2+deb8u4) oldstable; urgency=high
+
+  * Avoid reading past the end of buffer. Closes: #901351
+    [CVE-2018-10360]
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Mon, 11 Jun 2018 23:24:19 +0200
+
 file (1:5.22+15-2+deb8u3) stable; urgency=medium
 
   * Fix memory leak in magic loader. Closes: #840754
