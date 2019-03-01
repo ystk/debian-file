@@ -1,3 +1,11 @@
+file (1:5.22+15-2+deb8u5) jessie-security; urgency=medium
+
+  * Non-maintainer upload.
+  * Backport fix CVE-2019-8905, CVE-2019-8907:
+    Potential buffer over-reads in readelf.c.
+
+ -- Adrian Bunk <bunk@debian.org>  Thu, 28 Feb 2019 20:59:43 +0200
+
 file (1:5.22+15-2+deb8u4) oldstable; urgency=high
 
   * Avoid reading past the end of buffer. Closes: #901351

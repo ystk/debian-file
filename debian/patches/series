@@ -16,3 +16,4 @@ CVE-2015-8865.6713ca4.patch
 cherry-pick.FILE5_24-31-g3aa35aa.dont-leak-memory-when-loading-non-compiled-files.patch
 cherry-pick.FILE5_28-42-g10ee4ec.pr-569-shi-yin-fix-memory-leak.patch
 cherry-pick.FILE5_33-31-ga642587a.avoid-reading-past-the-end-of-buffer.patch
+0001-PR-62-spinpx-limit-size-of-file_printable.patch

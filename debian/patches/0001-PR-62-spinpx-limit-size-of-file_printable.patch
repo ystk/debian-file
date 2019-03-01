@@ -1,0 +1,96 @@
+From d65781527c8134a1202b2649695d48d5701ac60b Mon Sep 17 00:00:00 2001
+From: Christos Zoulas <christos@zoulas.com>
+Date: Mon, 18 Feb 2019 17:46:56 +0000
+Subject: PR/62: spinpx: limit size of file_printable.
+
+Index: file-5.22+15/src/file.h
+===================================================================
+--- file-5.22+15.orig/src/file.h
++++ file-5.22+15/src/file.h
+@@ -481,7 +481,7 @@ protected int file_looks_utf8(const unsi
+     size_t *);
+ protected size_t file_pstring_length_size(const struct magic *);
+ protected size_t file_pstring_get_length(const struct magic *, const char *);
+-protected char * file_printable(char *, size_t, const char *);
++protected char * file_printable(char *, size_t, const char *, size_t);
+ #ifdef __EMX__
+ protected int file_os2_apptype(struct magic_set *, const char *, const void *,
+     size_t);
+Index: file-5.22+15/src/funcs.c
+===================================================================
+--- file-5.22+15.orig/src/funcs.c
++++ file-5.22+15/src/funcs.c
+@@ -537,12 +537,13 @@ file_pop_buffer(struct magic_set *ms, fi
+  * convert string to ascii printable format.
+  */
+ protected char *
+-file_printable(char *buf, size_t bufsiz, const char *str)
++file_printable(char *buf, size_t bufsiz, const char *str, size_t slen)
+ {
+-	char *ptr, *eptr;
++	char *ptr, *eptr = buf + bufsiz - 1;
+ 	const unsigned char *s = (const unsigned char *)str;
++	const unsigned char *es = s + slen;
+ 
+-	for (ptr = buf, eptr = ptr + bufsiz - 1; ptr < eptr && *s; s++) {
++	for (ptr = buf;  ptr < eptr && s < es && *s; s++) {
+ 		if (isprint(*s)) {
+ 			*ptr++ = *s;
+ 			continue;
+Index: file-5.22+15/src/readelf.c
+===================================================================
+--- file-5.22+15.orig/src/readelf.c
++++ file-5.22+15/src/readelf.c
+@@ -688,7 +688,7 @@ do_core_note(struct magic_set *ms, unsig
+ 			 */
+ 			if (file_printf(ms, ", from '%.31s'",
+ 			    file_printable(sbuf, sizeof(sbuf),
+-			    (const char *)&nbuf[doff + 0x7c])) == -1)
++			    (const char *)&nbuf[doff + 0x7c], size)) == -1)
+ 				return 1;
+ 			
+ 			/*
+@@ -1331,7 +1331,8 @@ dophn_exec(struct magic_set *ms, int cla
+ 		return -1;
+ 	if (interp[0])
+ 		if (file_printf(ms, ", interpreter %s",
+-		    file_printable(ibuf, sizeof(ibuf), interp)) == -1)
++		    file_printable(ibuf, sizeof(ibuf), interp, sizeof(interp)))
++			== -1)
+ 			return -1;
+ 	return 0;
+ }
+Index: file-5.22+15/src/softmagic.c
+===================================================================
+--- file-5.22+15.orig/src/softmagic.c
++++ file-5.22+15/src/softmagic.c
+@@ -507,8 +507,8 @@ mprint(struct magic_set *ms, struct magi
+   	case FILE_LESTRING16:
+ 		if (m->reln == '=' || m->reln == '!') {
+ 			if (file_printf(ms, F(ms, m, "%s"), 
+-			    file_printable(sbuf, sizeof(sbuf), m->value.s))
+-			    == -1)
++			    file_printable(sbuf, sizeof(sbuf), m->value.s,
++			    sizeof(m->value.s))) == -1)
+ 				return -1;
+ 			t = ms->offset + m->vallen;
+ 		}
+@@ -535,7 +535,8 @@ mprint(struct magic_set *ms, struct magi
+ 			}
+ 
+ 			if (file_printf(ms, F(ms, m, "%s"),
+-			    file_printable(sbuf, sizeof(sbuf), str)) == -1)
++			    file_printable(sbuf, sizeof(sbuf), str,
++				sizeof(p->s) - (str - p->s))) == -1)
+ 				return -1;
+ 
+ 			if (m->type == FILE_PSTRING)
+@@ -641,7 +642,7 @@ mprint(struct magic_set *ms, struct magi
+ 			return -1;
+ 		}
+ 		rval = file_printf(ms, F(ms, m, "%s"),
+-		    file_printable(sbuf, sizeof(sbuf), cp));
++		    file_printable(sbuf, sizeof(sbuf), cp, ms->search.rm_len));
+ 		free(cp);
+ 
+ 		if (rval == -1)
