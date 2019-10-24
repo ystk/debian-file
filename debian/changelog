@@ -1,3 +1,12 @@
+file (1:5.22+15-2+deb8u6) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team. 
+  * CVE-2019-18218
+    Fix to restrict the number of CDF_VECTOR elements to prevent
+    a heap-based buffer overflow (4-byte out-of-bounds write).
+ 
+ -- Thorsten Alteholz <debian@alteholz.de>  Wed, 23 Oct 2019 19:04:02 +0200
+
 file (1:5.22+15-2+deb8u5) jessie-security; urgency=medium
 
   * Non-maintainer upload.
