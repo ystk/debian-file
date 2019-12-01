@@ -55,7 +55,7 @@ Index: file-5.22+15/src/readelf.c
  	if (interp[0])
  		if (file_printf(ms, ", interpreter %s",
 -		    file_printable(ibuf, sizeof(ibuf), interp)) == -1)
-+		    file_printable(ibuf, sizeof(ibuf), interp, sizeof(interp)))
++		    file_printable(ibuf, sizeof(ibuf), interp, strlen(interp)))
 +			== -1)
  			return -1;
  	return 0;
